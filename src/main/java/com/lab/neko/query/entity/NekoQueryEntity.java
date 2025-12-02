@@ -1,5 +1,7 @@
 package com.lab.neko.query.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -30,15 +32,18 @@ public class NekoQueryEntity {
     private String description;
 
     @Column(name = "created_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss", timezone = "GMT+07:00")
     private Date createdAt;
 
     @Column(name = "created_by")
     private String createdBy;
 
     @Column(name = "updated_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss", timezone = "GMT+07:00")
     private Date updatedAt;
 
     @Column(name = "updated_by")
+    @JsonIgnore
     private String updatedBy;
 
 }
