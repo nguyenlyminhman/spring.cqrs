@@ -1,35 +1,32 @@
 -- public.neko_command definition
-
 -- Drop table
-
 -- DROP TABLE neko_command;
 
 CREATE TABLE neko_command (
 	id uuid NOT NULL,
-	fullname varchar NULL,
-	gender varchar NULL,
-	color varchar NULL,
-	description varchar NULL,
+	fullname varchar(255) NULL,
+	gender varchar(255) NULL,
+	color varchar(255) NULL,
+	description varchar(255) NULL,
 	created_at timestamp NULL,
-	created_by varchar NULL,
+	created_by varchar(255) NULL,
 	CONSTRAINT neko_command_pk PRIMARY KEY (id)
 );
 
--- public.neko_read definition
 
+-- public.neko_query definition
 -- Drop table
+-- DROP TABLE neko_query;
 
--- DROP TABLE neko_read;
-
-CREATE TABLE neko_read (
+CREATE TABLE neko_query (
 	id uuid NOT NULL,
-	fullname varchar NULL,
-	gender varchar NULL,
-	color varchar NULL,
-	description varchar NULL,
-	created_at timestamp NULL,
-	created_by varchar NULL,
-	updated_at timestamp NULL,
-	updated_by varchar NULL,
-	CONSTRAINT neko_read_pk PRIMARY KEY (id)
+	color varchar(255) NULL,
+	created_at timestamp(6) NULL,
+	created_by varchar(255) NULL,
+	description varchar(255) NULL,
+	fullname varchar(255) NULL,
+	gender varchar(255) NULL,
+	updated_at timestamp(6) NULL,
+	updated_by varchar(255) NULL,
+	CONSTRAINT neko_query_pkey PRIMARY KEY (id)
 );
