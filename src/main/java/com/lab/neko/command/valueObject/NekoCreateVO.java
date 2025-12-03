@@ -14,7 +14,7 @@ public final class NekoCreateVO {
 
     private static final List<String> ALLOWED_GENDERS = Arrays.asList("MALE", "FEMALE", "OTHER");
 
-    private NekoCreateVO(String fullName, String gender, String color, String description) {
+    public NekoCreateVO(String fullName, String gender, String color, String description) {
         this.fullName = fullName;
         this.gender = gender;
         this.color = color;
@@ -41,7 +41,7 @@ public final class NekoCreateVO {
             throw new IllegalArgumentException("fullName must not be empty");
         }
         if (gender == null || !ALLOWED_GENDERS.contains(gender.toUpperCase())) {
-            throw new IllegalArgumentException("gender must be one of " + ALLOWED_GENDERS);
+            throw new IllegalArgumentException("gender must be one of" + ALLOWED_GENDERS);
         }
         if (color == null || color.isBlank()) {
             throw new IllegalArgumentException("color must not be empty");
