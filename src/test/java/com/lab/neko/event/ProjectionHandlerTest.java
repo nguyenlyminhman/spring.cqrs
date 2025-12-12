@@ -13,12 +13,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 
 import java.util.Date;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -98,4 +98,26 @@ public class ProjectionHandlerTest {
         assertNotNull(existNeko.getUpdatedAt());
         assertEquals("USER", existNeko.getUpdatedBy());
     }
+
+    @Test
+    void shouldNotFoundWhenUpdate() {
+        UUID idFake = UUID.randomUUID();
+        NekoCommandEntity commandEntity = new NekoCommandEntity();
+        commandEntity.setId(idFake);
+        commandEntity.setFullName("Update Neko");
+        commandEntity.setColor("Black");
+        commandEntity.setGender("MALE");
+        commandEntity.setDescription("Silly cat");
+
+        NekoUpdatedEvent event = new NekoUpdatedEvent(commandEntity);
+
+        UUID id = event.getNekoCommandEntity().getId();
+
+        when(queryRepository.findById(id)).thenReturn( Optional.empty());
+
+        assertThrows(NoSuchElementException.class, ()-> {projectionHandler.onUpdate(event);});
+
+        verify(queryRepository, never()).save(any());
+    }
+
 }
