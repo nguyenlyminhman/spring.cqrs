@@ -1,15 +1,15 @@
 package com.lab.neko.events;
 
 import com.lab.neko.command.entity.NekoCommandEntity;
-import com.lab.neko.query.entity.NekoQueryEntity;
-import com.lab.neko.query.repository.NekoQueryRepository;
+import com.lab.neko.query.dto.NekoQueryDto;
+import com.lab.utils.RedisKey;
+import com.lab.utils.RedisUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.UUID;
 
 @Component
 public class ProjectionHandler {
@@ -18,36 +18,38 @@ public class ProjectionHandler {
     private ModelMapper modelMapper;
 
     @Autowired
-    private NekoQueryRepository queryRepository;
+    private RedisUtils redisUtils;
 
     @EventListener
     public void onCreate(NekoCreatedEvent event) {
         NekoCommandEntity commandEntity = event.getNekoCommandEntity();
         System.out.println("- - - - - NekoCreatedEvent - Begin - - - - -");
-        NekoQueryEntity queryEntity = modelMapper.map(commandEntity, NekoQueryEntity.class);
+        String nekoId = commandEntity.getId().toString();
+        String key = RedisKey.nekoProfile(nekoId);
 
-        queryRepository.save(queryEntity);
+        redisUtils.setCacheObject(key, commandEntity);
         System.out.println("- - - - - NekoCreatedEvent - End - - - - -");
     }
 
     @EventListener
     public void onUpdate(NekoUpdatedEvent event) {
-
-        NekoCommandEntity updateEntity = event.getNekoCommandEntity();
+        NekoCommandEntity commandEntity = event.getNekoCommandEntity();
         System.out.println("- - - - - NekoUpdatedEvent - Begin - - - - -");
-        UUID id = updateEntity.getId();
-        NekoQueryEntity queryEntity = queryRepository.findById(id).orElseThrow();
-
-        queryEntity.setFullName(updateEntity.getFullName());
-        queryEntity.setGender(updateEntity.getGender());
-        queryEntity.setColor(updateEntity.getColor());
-        queryEntity.setDescription(updateEntity.getDescription());
+        NekoQueryDto queryEntity = new NekoQueryDto();
+        queryEntity.setId(commandEntity.getId());
+        queryEntity.setVersion(commandEntity.getVersion());
+        queryEntity.setFullname(commandEntity.getFullName());
+        queryEntity.setGender(commandEntity.getGender());
+        queryEntity.setColor(commandEntity.getColor());
+        queryEntity.setDescription(commandEntity.getDescription());
 
         queryEntity.setUpdatedAt(new Date());
         queryEntity.setUpdatedBy("USER");
 
-        queryRepository.save(queryEntity);
+        String nekoId = commandEntity.getId().toString();
+        String key = RedisKey.nekoProfile(nekoId);
 
-
+        redisUtils.setCacheObject(key, queryEntity);
+        System.out.println("- - - - - NekoUpdatedEvent - End - - - - -");
     }
 }

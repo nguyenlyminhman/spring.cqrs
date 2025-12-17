@@ -1,5 +1,6 @@
 package com.lab.neko.command.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.lab.neko.command.valueObject.NekoCreateVO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,9 @@ public class NekoCommandEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @Version
+    private long version;
+
     @Column(name = "fullname")
     private String fullName;
 
@@ -29,6 +33,7 @@ public class NekoCommandEntity {
     private String description;
 
     @Column(name = "created_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss", timezone = "GMT+07:00")
     private Date createdAt;
 
     @Column(name = "created_by")
