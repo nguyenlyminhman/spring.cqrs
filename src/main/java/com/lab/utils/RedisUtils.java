@@ -1,11 +1,10 @@
 package com.lab.utils;
 
+import com.lab.neko.command.entity.NekoCommandEntity;
+import com.lab.neko.query.dto.NekoQueryResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.BoundSetOperations;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -257,6 +256,39 @@ public class RedisUtils {
     public Collection<String> keys(final String pattern)
     {
         return redisTemplate.keys(pattern);
+    }
+
+
+    public <T> List<T> scanOptionsList(String pattern, int count) {
+        List<T> lsT = new ArrayList<>();
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(pattern)
+                .count(count)
+                .build();
+
+        Cursor<byte[]> cursor = redisTemplate.getConnectionFactory()
+                .getConnection()
+                .scan(options);
+        while (cursor.hasNext()) {
+            String key = new String(cursor.next());
+            T t = (T) redisTemplate.opsForValue().get(key);
+            lsT.add(t);
+        }
+        return lsT;
+    }
+
+    public Cursor<byte[]> scanOptionsCursor(String pattern, int count) {
+
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(pattern)
+                .count(count)
+                .build();
+
+        Cursor<byte[]> cursor = redisTemplate.getConnectionFactory()
+                .getConnection()
+                .scan(options);
+
+        return cursor;
     }
 
 }
