@@ -4,8 +4,8 @@ import com.lab.neko.command.entity.NekoCommandEntity;
 import com.lab.neko.events.NekoCreatedEvent;
 import com.lab.neko.events.NekoUpdatedEvent;
 import com.lab.neko.events.ProjectionHandler;
-import com.lab.neko.query.entity.NekoQueryEntity;
-import com.lab.neko.query.repository.NekoQueryRepository;
+import com.lab.utils.RedisKey;
+import com.lab.utils.RedisUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,7 +14,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 import java.util.Date;
@@ -29,7 +31,7 @@ public class ProjectionHandlerTest {
     private ModelMapper modelMapper;
 
     @Mock
-    private NekoQueryRepository queryRepository;
+    private RedisUtils redisUtils;
 
     @InjectMocks
     private ProjectionHandler projectionHandler;
@@ -46,15 +48,11 @@ public class ProjectionHandlerTest {
         commandEntity.setDescription("Naughty cat");
 
         NekoCreatedEvent event = new NekoCreatedEvent(commandEntity);
-
-        NekoQueryEntity mappedEntity = new NekoQueryEntity();
-
-        when(modelMapper.map( commandEntity, NekoQueryEntity.class)).thenReturn(mappedEntity);
+        String keyCache = RedisKey.nekoProfile(commandEntity.getId().toString());
 
         projectionHandler.onCreate(event);
 
-        verify(modelMapper, times(1)).map( commandEntity, NekoQueryEntity.class);
-        verify(queryRepository, times(1)).save(mappedEntity);
+        verify(redisUtils).setCacheObject(keyCache, commandEntity);
     }
 
     @Test
@@ -68,56 +66,10 @@ public class ProjectionHandlerTest {
         commandEntity.setDescription("Silly cat");
 
         NekoUpdatedEvent event = new NekoUpdatedEvent(commandEntity);
-
         UUID id = event.getNekoCommandEntity().getId();
-
-        NekoQueryEntity  existNeko = new NekoQueryEntity ();
-        existNeko.setId(id);
-        existNeko.setFullName("Old Neko");
-        existNeko.setColor("Black");
-        existNeko.setGender("MALE");
-        existNeko.setDescription("Silly cat");
-        existNeko.setUpdatedAt(new Date());
-        existNeko.setUpdatedBy("USER");
-
-
-        when(queryRepository.findById(id)).thenReturn( Optional.of(existNeko));
-
         //
+        String keyCache = RedisKey.nekoProfile(id.toString());
         projectionHandler.onUpdate(event);
-
-        verify(queryRepository, times(1)).findById(id);
-        verify(queryRepository, times(1)).save(existNeko);
-
-        assertEquals(idFake, existNeko.getId());
-        assertEquals("Update Neko", existNeko.getFullName());
-        assertEquals("Black", existNeko.getColor());
-        assertEquals("MALE", existNeko.getGender());
-        assertEquals("Silly cat", existNeko.getDescription());
-
-        assertNotNull(existNeko.getUpdatedAt());
-        assertEquals("USER", existNeko.getUpdatedBy());
+        verify(redisUtils).setCacheObject(keyCache, commandEntity);
     }
-
-    @Test
-    void shouldNotFoundWhenUpdate() {
-        UUID idFake = UUID.randomUUID();
-        NekoCommandEntity commandEntity = new NekoCommandEntity();
-        commandEntity.setId(idFake);
-        commandEntity.setFullName("Update Neko");
-        commandEntity.setColor("Black");
-        commandEntity.setGender("MALE");
-        commandEntity.setDescription("Silly cat");
-
-        NekoUpdatedEvent event = new NekoUpdatedEvent(commandEntity);
-
-        UUID id = event.getNekoCommandEntity().getId();
-
-        when(queryRepository.findById(id)).thenReturn( Optional.empty());
-
-        assertThrows(NoSuchElementException.class, ()-> {projectionHandler.onUpdate(event);});
-
-        verify(queryRepository, never()).save(any());
-    }
-
 }
